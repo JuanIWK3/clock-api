@@ -13,15 +13,12 @@ model = joblib.load('svm_model.pkl')
 
 TARGET_SIZE = (128, 128)
 
-# Function to preprocess the image
-def preprocess_image(image_path):
+# Function to preprocess the image (convert to grayscale)
+def preprocess_image(image_path, target_size=(128, 128)):
     img = Image.open(image_path).convert('L')  # Convert to grayscale
-    # convert to binary
-    img = img.point(lambda x: 0 if x < 128 else 255, '1')
-    img = img.resize(TARGET_SIZE)  # Resize image
+    img = img.resize(target_size)  # Resize to match the training images
     img_array = np.array(img).flatten()  # Flatten the image
-    img_array = img_array.reshape(1, -1)  # Reshape for the model
-    return img_array
+    return img_array.reshape(1, -1)  # Reshape to a 2D array
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -42,6 +39,8 @@ def predict():
         # Predict using the SVM model
         prediction = model.predict(img_array)
         predicted_label = 'normal' if prediction[0] == 0 else 'disorder'
+        print(predicted_label)
+
 
         return jsonify({'prediction': predicted_label})
 
